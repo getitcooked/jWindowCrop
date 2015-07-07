@@ -48,7 +48,7 @@
 
 		base.destroy = function() {
 			base.$image.removeData("jWindowCrop"); // remove data
-			$(document).unbind(); // remove body binds
+			$(document).unbind('touchend.'+base.namespace  + ' touchmove.'+base.namespace); // remove body binds/**/
 			base.$image.unbind(); // remove image binds
 			base.$frame.unbind(); // remove frame binds
 			base.$frame.find('.jwc_zoom_out').unbind(); // remove zoom triggers
@@ -60,18 +60,19 @@
 		};
 		
 		base.setZoom = function(percent) {
-			if(base.minPercent >= 1) {
-				percent = base.minPercent;
-			} else if(percent > 1.0) {
-				percent = 1;
-			} else if(percent < base.minPercent) {
-				percent = base.minPercent;	
-			}
-			base.$image.width(Math.ceil(base.originalWidth*percent));
-			base.workingPercent = percent;
+			setPercent(percent);
+            base.$image.width(Math.ceil(base.originalWidth*base.workingPercent));
 			focusOnCenter();
 			updateResult();
 		};
+
+        base.setImagePositon = function(percent){
+            setPercent(percent);
+            base.$image.width(Math.ceil(base.originalWidth*base.workingPercent));
+            focusOnPoints();
+            updateResult();
+        };
+
 		base.zoomIn = function() {
 			var zoomIncrement = (1.0 - base.minPercent) / (base.options.zoomSteps-1);
 			base.setZoom(base.workingPercent+zoomIncrement);
@@ -98,10 +99,36 @@
 					base.minPercent = (base.originalHeight < base.options.targetHeight) ? (base.options.targetHeight / base.originalHeight) : heightRatio;
 				}
 				base.focalPoint = {'x': Math.round(base.originalWidth/2), 'y': Math.round(base.originalHeight/2)};
-				base.setZoom(base.minPercent);
+
+                if (base.options.cropX === '' && base.options.cropY === ''){
+                    base.setZoom(base.minPercent);
+                } else {
+                    base.setImagePositon(base.minPercent);
+                }
 				base.$image.fadeIn('fast'); //display image now that it has loaded
 			}
 		}
+
+        function setPercent(percent)
+        {
+            if(base.minPercent >= 1) {
+                percent = base.minPercent;
+            } else if (percent > 1.0) {
+                percent = 1;
+            } else if (percent < base.minPercent) {
+                percent = base.minPercent;
+            }
+            base.workingPercent = percent;
+        }
+
+        function focusOnPoints()
+        {
+            var left = fillContainer(base.options.cropX/base.workingPercent*-1, base.$image.width(), base.options.targetWidth);
+            var top = fillContainer(base.options.cropY/base.workingPercent*-1, base.$image.height(), base.options.targetHeight);
+            base.$image.css({'margin-left': (left.toString()+'px'), 'margin-top': (top.toString()+'px')});
+            storeFocalPoint();
+        }
+
 		function storeFocalPoint() {
 			var x = (parseInt(base.$image.css('left'))*-1 + base.options.targetWidth/2) / base.workingPercent;
 			var y = (parseInt(base.$image.css('top'))*-1 + base.options.targetHeight/2) / base.workingPercent;
@@ -163,6 +190,8 @@
 		loadingText: 'Loading...',
 		smartControls: true,
 		showControlsOnStart: true,
+        cropX: '',
+        cropY: '',
 		onChange: function() {}
 	};
 	
