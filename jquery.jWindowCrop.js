@@ -125,7 +125,7 @@
         {
             var left = fillContainer(base.options.cropX/base.workingPercent*-1, base.$image.width(), base.options.targetWidth);
             var top = fillContainer(base.options.cropY/base.workingPercent*-1, base.$image.height(), base.options.targetHeight);
-            base.$image.css({'margin-left': (left.toString()+'px'), 'margin-top': (top.toString()+'px')});
+            base.$image.css({'left': (left.toString()+'px'), 'top': (top.toString()+'px')});
             storeFocalPoint();
         }
 
